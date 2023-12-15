@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { db } from './firebase-config';
+//import { collection, getDocs } from 'firebase/firestore';
 import './App.css';
 
 interface Item {
@@ -11,6 +13,8 @@ function App(): JSX.Element {
   const [items, setItems] = useState<Item[]>([]);
   const [total, setTotal] = useState<number>(0);
   const [numberOfProducts, setNumberOfProducts] = useState<number>(0);
+  // create a reference to our firestore collection
+ //const itemsCollectionRef = collection(db, 'Groceries');
 
   const addItem = () => {
     const newItem: Item = {
