@@ -1,7 +1,6 @@
 import { useState } from 'react';
-import { db } from './firebase-config';
-//import { collection, getDocs } from 'firebase/firestore';
 import './App.css';
+import { getGroceries } from './firebase-service'; // Import the getGroceries function
 
 interface Item {
   id: number;
@@ -13,20 +12,26 @@ function App(): JSX.Element {
   const [items, setItems] = useState<Item[]>([]);
   const [total, setTotal] = useState<number>(0);
   const [numberOfProducts, setNumberOfProducts] = useState<number>(0);
-  // create a reference to our firestore collection
- //const itemsCollectionRef = collection(db, 'Groceries');
 
-  const addItem = () => {
-    const newItem: Item = {
-      id: items.length + 1,
-      name: `Product ${items.length + 1}`,
-      // Example Indian grocery prices (in Rupees)
-      price: Math.floor(Math.random() * 100) + 50,
-    };
+  // Modify the addItem function to fetch a random document from the 'Groceries' collection
+  const addItem = async () => {
+    try {
+      const groceriesData = await getGroceries();
+      const randomIndex = Math.floor(Math.random() * groceriesData.length);
+      const randomGrocery = groceriesData[randomIndex];
 
-    setItems([...items, newItem]);
-    setTotal(total + newItem.price);
-    setNumberOfProducts(items.length + 1);
+      const newItem: Item = {
+        id: items.length + 1,
+        name: randomGrocery.ProdName,
+        price: randomGrocery.Price,
+      };
+
+      setItems([...items, newItem]);
+      setTotal(total + newItem.price);
+      setNumberOfProducts(items.length + 1);
+    } catch (error) {
+      console.error('Error fetching data from Firestore', error);
+    }
   };
 
   const handleUPI = (e: { preventDefault: () => void; }) =>{
