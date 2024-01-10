@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import './App.css';
 import { getGroceries } from './firebase-service'; // Import the getGroceries function
 
@@ -34,8 +34,8 @@ function App(): JSX.Element {
     }
   };
 
-  const handleUPI = (e: { preventDefault: () => void; }) =>{
-    e.preventDefault();
+  const handleUPI = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
     if(total === 0){
       alert("PLease add the items to pay");
     }else{
@@ -69,6 +69,40 @@ function App(): JSX.Element {
       
     }
   }
+
+  const handleKeyPress = (event: KeyboardEvent) => {
+    // Define keyboard shortcuts and corresponding actions
+    switch (event.key.toLowerCase()) {
+      case 'a':
+        addItem();
+        break;
+      case 'c':
+        // Add logic for completing payment
+        break;
+      case 'r':
+        // Read aloud total price
+        alert(`Total: ₹${total}`);
+        break;
+        case 'u':
+          handleUPI({
+            preventDefault: () => {},
+          } as React.MouseEvent<HTMLButtonElement>);
+          break;
+      // Add more cases for additional shortcuts as needed
+      default:
+        break;
+    }
+  };
+
+  useEffect(() => {
+    // Attach event listener when the component mounts
+    window.addEventListener('keydown', handleKeyPress);
+
+    // Remove event listener when the component unmounts
+    return () => {
+      window.removeEventListener('keydown', handleKeyPress);
+    };
+  }, [total, items]); // Include any dependencies that should trigger re-creation of the event listener
 
   return (
     <>
