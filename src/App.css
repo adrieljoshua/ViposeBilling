@@ -69,6 +69,29 @@
   overflow-y: scroll;
 }
 
+.customer-info-container {
+  position: fixed;
+  width: 650px;
+  left: 0;
+  margin-left: 20px;
+  top: 0;
+  margin-top: 520px; /* Adjust the margin-top as needed */
+  background-color: #1a1a1a;
+  color: white;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 20px; /* Add padding as needed */
+}
+
+.input-label {
+  margin-right: 5px; 
+}
+
+.customer-info-input
+{
+  margin-bottom: 5px;
+}
+
 .payment-container{
   width:500px;
   height: 500px;

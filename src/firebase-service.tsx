@@ -1,5 +1,4 @@
-// firebase-service.ts
-import { getFirestore, collection, getDocs } from 'firebase/firestore';
+import { getFirestore, collection, getDocs, addDoc } from 'firebase/firestore';
 import { firebaseApp } from './firebase-config';
 
 const db = getFirestore(firebaseApp);
@@ -22,4 +21,15 @@ const getGroceries = async (): Promise<Grocery[]> => {
   });
 };
 
-export { getGroceries };
+// Function to add a bill to Firestore
+const addBill = async (billData: any): Promise<void> => {
+  try {
+    const billsCollection = collection(db, 'bills');
+    await addDoc(billsCollection, billData);
+  } catch (error) {
+    console.error('Error adding bill to Firestore', error);
+    throw error;
+  }
+};
+
+export { getGroceries, addBill };
