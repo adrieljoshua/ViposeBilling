@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState,useEffect } from 'react';
 import './App.css';
 import { getGroceries, addBill } from './firebase-service'; // Import the getGroceries function
+import { useSpeechSynthesis } from 'react-speech-kit';
 
 interface Item {
   id: number;
@@ -15,6 +16,8 @@ function App(): JSX.Element {
   const [customerName, setCustomerName] = useState<string>("");
   const [mobileNumber, setMobileNumber] = useState<string>("");
   const [isUpiPaymentSuccessful, setIsUpiPaymentSuccessful] = useState<boolean>(false);
+
+  const {speak} = useSpeechSynthesis();
 
   const addItem = async () => {
     try {
@@ -128,6 +131,44 @@ function App(): JSX.Element {
     }
   };
   
+  const handleKeyPress = (event: KeyboardEvent) => {
+    // Define keyboard shortcuts and corresponding actions
+    switch (event.key.toLowerCase()) {
+      case 'a':
+        addItem();
+        const ItemAddedText = "Item Added";
+        speak({text:ItemAddedText});
+        break;
+      case 'c':
+        // Add logic for completing payment
+        break;
+      case 'r':
+        
+        // Read aloud total price
+        const totalPriceText = `Total is ${total} Rupees`;
+        speak({text:totalPriceText});
+        break;
+        case 'u':
+          handleUPI({
+            preventDefault: () => {},
+          } as React.MouseEvent<HTMLButtonElement>);
+          break;
+      // Add more cases for additional shortcuts as needed
+      default:
+        break;
+    }
+  };
+
+  useEffect(() => {
+    // Attach event listener when the component mounts
+    window.addEventListener('keydown', handleKeyPress);
+
+    // Remove event listener when the component unmounts
+    return () => {
+      window.removeEventListener('keydown', handleKeyPress);
+    };
+  }, [total, items, handleKeyPress]); // Include any dependencies that should trigger re-creation of the event listener
+
 
   return (
     <>
