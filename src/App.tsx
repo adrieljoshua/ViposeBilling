@@ -1,6 +1,6 @@
-import { useState,useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import './App.css';
-import { getGroceries, addBill } from './firebase-service'; // Import the getGroceries function
+import { getGroceries, addBill } from './firebase-service';
 import { useSpeechSynthesis } from 'react-speech-kit';
 
 interface Item {
@@ -13,11 +13,33 @@ function App(): JSX.Element {
   const [items, setItems] = useState<Item[]>([]);
   const [total, setTotal] = useState<number>(0);
   const [numberOfProducts, setNumberOfProducts] = useState<number>(0);
-  const [customerName, setCustomerName] = useState<string>("");
   const [mobileNumber, setMobileNumber] = useState<string>("");
   const [isUpiPaymentSuccessful, setIsUpiPaymentSuccessful] = useState<boolean>(false);
 
-  const {speak} = useSpeechSynthesis();
+  const { speak } = useSpeechSynthesis();
+
+// Load saved state from localStorage on component mount
+useEffect(() => {
+  const savedState = localStorage.getItem('billState');
+  if (savedState) {
+    const { items, total, numberOfProducts, mobileNumber } = JSON.parse(savedState);
+    
+    // Check if values are not undefined or null before updating the state
+    if (items !== undefined && total !== undefined && numberOfProducts !== undefined && mobileNumber !== undefined) {
+      setItems(items);
+      setTotal(total);
+      setNumberOfProducts(numberOfProducts);
+      setMobileNumber(mobileNumber);
+    }
+  }
+}, []);
+
+
+// Save the current state to localStorage whenever it changes
+useEffect(() => {
+  localStorage.setItem('billState', JSON.stringify({ items, total, numberOfProducts, mobileNumber }));
+}, [items, total, numberOfProducts, mobileNumber]);
+
 
   const addItem = async () => {
     try {
@@ -48,13 +70,13 @@ function App(): JSX.Element {
       try {
         // Options for Razorpay
         var options = {
-          key:"rzp_test_C5gIVKuikWVtvc",
-          key_secret:"5QgPlbdUEGRoogpiaPAnFQnT",
+          key: "rzp_test_C5gIVKuikWVtvc",
+          key_secret: "5QgPlbdUEGRoogpiaPAnFQnT",
           amount: total * 100,
-          currency:"INR",
-          name:"VIPOSE_Payments",
-          description:"for testing purpose",
-          handler: function(response: { razorpay_payment_id: any; }){
+          currency: "INR",
+          name: "VIPOSE_Payments",
+          description: "for testing purpose",
+          handler: function (response: { razorpay_payment_id: any }) {
             alert(response.razorpay_payment_id);
           },
           prefill: {
@@ -62,7 +84,7 @@ function App(): JSX.Element {
             email: "fathima3891@gmail.com",
             contact: "9384843005"
           },
-          notes:{
+          notes: {
             address: "Razorpay Corporate office",
           },
           theme: {
@@ -95,34 +117,31 @@ function App(): JSX.Element {
     try {
       // Check if UPI payment was successful before generating the bill
       if (isUpiPaymentSuccessful) {
-        // Check if customerName and mobileNumber are filled
-        if (customerName && mobileNumber) {
+        // Check if mobileNumber is filled
+        if (mobileNumber) {
           // Create an object representing the bill
           const billData = {
-            customerName,
             mobileNumber,
             totalAmount: total,
             items: items.map((item) => ({ name: item.name, price: item.price })),
             timestamp: new Date(),
           };
-  
+
           // Add the generated bill data to Firestore
           await addBill(billData);
-  
-          // Clear the customerName and mobileNumber states
-          setCustomerName("");
+
+          // Clear the mobileNumber state
           setMobileNumber("");
-  
+
           // Clear the items and reset the total after completing the payment
           setItems([]);
           setTotal(0);
           setNumberOfProducts(0);
-  
-          console.log("Bill added to Firestore successfully");
-        }else{
-          console.error('Customer details are incomplete. Please enter both customer name and mobile number.');
-        }
 
+          console.log("Bill added to Firestore successfully");
+        } else {
+          console.error('Mobile number is required.');
+        }
       } else {
         console.error('UPI payment was not successful. Bill not generated.');
       }
@@ -130,34 +149,47 @@ function App(): JSX.Element {
       console.error('Error storing bill data in Firestore', error);
     }
   };
-  
+
   const handleKeyPress = (event: KeyboardEvent) => {
     // Define keyboard shortcuts and corresponding actions
     switch (event.key.toLowerCase()) {
       case 'a':
         addItem();
         const ItemAddedText = "Item Added";
-        speak({text:ItemAddedText});
+        speak({ text: ItemAddedText });
         break;
       case 'c':
-        // Add logic for completing payment
+        generateBill();
+        const PaymentCompletedText = "Payment completed. Bill is added to Database";
+        speak({ text: PaymentCompletedText });
         break;
       case 'r':
-        
-        // Read aloud total price
-        const totalPriceText = `Total is ${total} Rupees`;
-        speak({text:totalPriceText});
+        // Read aloud total price and number of items
+        const totalPriceText = `${numberOfProducts} items are added, Total is ${total} Rupees.`;
+        speak({ text: totalPriceText });
         break;
-        case 'u':
-          handleUPI({
-            preventDefault: () => {},
-          } as React.MouseEvent<HTMLButtonElement>);
-          break;
+      case 'u':
+        handleUPI({
+          preventDefault: () => { },
+        } as React.MouseEvent<HTMLButtonElement>);
+        const UpiPaymentText = "UPI Payment window opened.";
+        speak({ text: UpiPaymentText });
+        break;
+      case 'm':
+        // Move focus to the mobile number input field
+        const mobileNumberInput = document.getElementById("mobileNumber") as HTMLInputElement | null;
+        if (mobileNumberInput) {
+          mobileNumberInput.focus();
+          const MobileNumberFocusedText = "Mobile number field focused.";
+          speak({ text: MobileNumberFocusedText });
+        }
+        break;
       // Add more cases for additional shortcuts as needed
       default:
         break;
     }
   };
+  
 
   useEffect(() => {
     // Attach event listener when the component mounts
@@ -168,7 +200,6 @@ function App(): JSX.Element {
       window.removeEventListener('keydown', handleKeyPress);
     };
   }, [total, items, handleKeyPress]); // Include any dependencies that should trigger re-creation of the event listener
-
 
   return (
     <>
@@ -185,17 +216,7 @@ function App(): JSX.Element {
         </div>
         <div className="customer-info-container">
           <div className='customer-info-input'>
-            <label htmlFor="customerName" className="input-label">Customer Name:</label>
-            <input
-              type="text"
-              id="customerName"
-              placeholder="Enter name"
-              value={customerName}
-              onChange={(e) => setCustomerName(e.target.value)}
-            />
-          </div>
-          <div className='customer-info-input'>
-            <label htmlFor="mobileNumber" className="input-label">Mobile Number:</label>
+            <label htmlFor="mobileNumber" className="input-label">Customer's Mobile Number:</label>
             <input
               type="text"
               id="mobileNumber"
