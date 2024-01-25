@@ -9,7 +9,11 @@
 
   color-scheme: light dark;
   color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+ --primary-color: #8a2be2; /* Purple color */
+  --primary-hover-color: #6a1b9a; /* Darker shade for hover */
+  --background-color: #242424;
+  --button-background: #8a2be2; /* Purple color for button */
+  --button-hover-background: #6a1b9a;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -20,11 +24,14 @@
 
 a {
   font-weight: 500;
-  color: #646cff;
   text-decoration: inherit;
 }
 a:hover {
-  color: #535bf2;
+
+}
+ul{
+    list-style: none;
+
 }
 
 body {
@@ -40,6 +47,12 @@ h1 {
   line-height: 1.1;
 }
 
+li {
+  background-color: #3B3B3B; /* Set the background color as needed */
+  padding: 12px; /* Adjust padding as needed */
+  margin-bottom: 8px; /* Adjust margin as needed to add space between elements */
+  border-radius: 5px;
+}
 button {
   border-radius: 8px;
   border: 1px solid transparent;
@@ -47,7 +60,6 @@ button {
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
-  background-color: #1a1a1a;
   cursor: pointer;
   transition: border-color 0.25s;
 }
@@ -56,10 +68,9 @@ button:hover {
 }
 button:focus,
 button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
 }
 
-@media (prefers-color-scheme: light) {
+/* @media (prefers-color-scheme: light) {
   :root {
     color: #213547;
     background-color: #ffffff;
@@ -70,4 +81,30 @@ button:focus-visible {
   button {
     background-color: #f9f9f9;
   }
+} */
+
+.selected {
+  background-color: #e0e0e0;
+  padding: 12px; /* Adjust padding as needed */
+  margin-bottom: 8px; /* Adjust margin as needed to add space between elements */
+  border-radius: 5px;
+}
+
+
+input {
+  border: var(--input-border);
+  padding: 10px;
+  border-radius: var(--input-radius);
+  /* background-color: #646cff; */
+  color: inherit;
+  transition: border-color 0.25s;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  /* padding: 0.6em 1.2em; */
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+}
+input:focus {
+  border: var(--input-focus-border);
 }

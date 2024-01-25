@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect,useRef } from 'react';
 import './App.css';
 import { getGroceries, addBill } from './firebase-service';
 import { useSpeechSynthesis } from 'react-speech-kit';
@@ -15,8 +15,10 @@ function App(): JSX.Element {
   const [numberOfProducts, setNumberOfProducts] = useState<number>(0);
   const [mobileNumber, setMobileNumber] = useState<string>("");
   const [isUpiPaymentSuccessful, setIsUpiPaymentSuccessful] = useState<boolean>(false);
-
   const { speak } = useSpeechSynthesis();
+  const [selectedItemIndex, setSelectedItemIndex] = useState<number | null>(null);
+// Fetch grocery items on mount and update state with the result
+  const itemsContainerRef = useRef<HTMLDivElement | null>(null);
 
 // Load saved state from localStorage on component mount
 useEffect(() => {
@@ -41,6 +43,7 @@ useEffect(() => {
 }, [items, total, numberOfProducts, mobileNumber]);
 
 
+
   const addItem = async () => {
     try {
       const groceriesData = await getGroceries();
@@ -52,6 +55,9 @@ useEffect(() => {
         name: randomGrocery.ProdName,
         price: randomGrocery.Price,
       };
+
+      const itemAddedText = `${newItem.name} added: ${newItem.price} rupees`;
+      speak({ text: itemAddedText });
 
       setItems([...items, newItem]);
       setTotal(total + newItem.price);
@@ -155,8 +161,6 @@ useEffect(() => {
     switch (event.key.toLowerCase()) {
       case 'a':
         addItem();
-        const ItemAddedText = "Item Added";
-        speak({ text: ItemAddedText });
         break;
       case 'c':
         generateBill();
@@ -184,12 +188,44 @@ useEffect(() => {
           speak({ text: MobileNumberFocusedText });
         }
         break;
+        
+        case 'arrowup':
+        event.preventDefault();
+        navigateItems('up');
+        break;
+
+      case 'arrowdown':
+        event.preventDefault();
+        navigateItems('down');
+        break;
       // Add more cases for additional shortcuts as needed
       default:
         break;
     }
   };
   
+   const navigateItems = (direction: 'up' | 'down') => {
+    if (items.length === 0) {
+      return;
+    }
+
+    let newIndex = selectedItemIndex !== null ? selectedItemIndex : -1;
+
+    if (direction === 'up') {
+      newIndex = newIndex > 0 ? newIndex - 1 : items.length - 1;
+    } else {
+      newIndex = newIndex < items.length - 1 ? newIndex + 1 : 0;
+    }
+
+    setSelectedItemIndex(newIndex);
+
+    // Read aloud the name of the currently selected item
+    const selectedText = newIndex === items.length
+      ? 'End of List'
+      : ` ${items[newIndex].name} Selected: ${items[newIndex].price} rupees`;
+    speak({ text: selectedText });
+  };
+
 
   useEffect(() => {
     // Attach event listener when the component mounts
@@ -199,7 +235,7 @@ useEffect(() => {
     return () => {
       window.removeEventListener('keydown', handleKeyPress);
     };
-  }, [total, items, handleKeyPress]); // Include any dependencies that should trigger re-creation of the event listener
+  }, [total, items, selectedItemIndex, handleKeyPress]); // Include any dependencies that should trigger re-creation of the event listener
 
   return (
     <>
@@ -207,11 +243,15 @@ useEffect(() => {
         <button className="add-btn" onClick={addItem}>
           ADD PRODUCT
         </button>
-        <div className="items-container">
-          <ul>
-            {items.map((item) => (
-              <li key={item.id}>{`${item.name}: ₹${item.price}`}</li>
+        <div className="items-container" ref={itemsContainerRef}>
+          <ul className="list-none">
+            {items.map((item, index) => (
+              <li
+                key={item.id}
+                className={selectedItemIndex === index ? 'selected' : ''}
+              >{`${item.name}: ₹${item.price}`}</li>
             ))}
+            <li className={selectedItemIndex === items.length ? 'selected' : ''}>End of List</li>
           </ul>
         </div>
         <div className="customer-info-container">
