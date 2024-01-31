@@ -126,7 +126,7 @@ function App(): JSX.Element {
           const billData = {
             mobileNumber,
             totalAmount: total,
-            items: items.map((item) => ({ name: item.name, price: item.price })),
+            items: items.map((item) => ({ name: item.name, price: item.price, quantity: item.quantity })),
             timestamp: new Date(),
           };
 
@@ -143,13 +143,13 @@ function App(): JSX.Element {
 
           console.log("Bill added to Firestore successfully");
         } else {
-          console.error('Mobile number is required.');
+            console.error('Mobile number is required.');
         }
       } else {
         console.error('UPI payment was not successful. Bill not generated.');
       }
     } catch (error) {
-      console.error('Error storing bill data in Firestore', error);
+        console.error('Error storing bill data in Firestore', error);
     }
   };
 
