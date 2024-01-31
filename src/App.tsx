@@ -1,7 +1,6 @@
 import { useState, useEffect,useRef } from 'react';
 import './App.css';
 import { getGroceries, addBill } from './firebase-service';
-import { useSpeechSynthesis } from 'react-speech-kit';
 
 interface Item {
   id: number;
@@ -15,7 +14,6 @@ function App(): JSX.Element {
   const [numberOfProducts, setNumberOfProducts] = useState<number>(0);
   const [mobileNumber, setMobileNumber] = useState<string>("");
   const [isUpiPaymentSuccessful, setIsUpiPaymentSuccessful] = useState<boolean>(false);
-  const { speak } = useSpeechSynthesis();
   const [selectedItemIndex, setSelectedItemIndex] = useState<number | null>(null);
 // Fetch grocery items on mount and update state with the result
   const itemsContainerRef = useRef<HTMLDivElement | null>(null);
@@ -55,9 +53,6 @@ useEffect(() => {
         name: randomGrocery.ProdName,
         price: randomGrocery.Price,
       };
-
-      const itemAddedText = `${newItem.name} added: ${newItem.price} rupees`;
-      speak({ text: itemAddedText });
 
       setItems([...items, newItem]);
       setTotal(total + newItem.price);
@@ -165,19 +160,16 @@ useEffect(() => {
       case 'c':
         generateBill();
         const PaymentCompletedText = "Payment completed. Bill is added to Database";
-        speak({ text: PaymentCompletedText });
         break;
       case 'r':
         // Read aloud total price and number of items
         const totalPriceText = `${numberOfProducts} items are added, Total is ${total} Rupees.`;
-        speak({ text: totalPriceText });
         break;
       case 'u':
         handleUPI({
           preventDefault: () => { },
         } as React.MouseEvent<HTMLButtonElement>);
         const UpiPaymentText = "UPI Payment window opened.";
-        speak({ text: UpiPaymentText });
         break;
       case 'm':
         // Move focus to the mobile number input field
@@ -185,7 +177,6 @@ useEffect(() => {
         if (mobileNumberInput) {
           mobileNumberInput.focus();
           const MobileNumberFocusedText = "Mobile number field focused.";
-          speak({ text: MobileNumberFocusedText });
         }
         break;
         
@@ -219,11 +210,7 @@ useEffect(() => {
 
     setSelectedItemIndex(newIndex);
 
-    // Read aloud the name of the currently selected item
-    const selectedText = newIndex === items.length
-      ? 'End of List'
-      : ` ${items[newIndex].name} Selected: ${items[newIndex].price} rupees`;
-    speak({ text: selectedText });
+
   };
 
 
