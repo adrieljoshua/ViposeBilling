@@ -123,6 +123,13 @@
   margin-left: 5%;
 }
 
+#increment-decrement {
+  font-size: 16px; 
+  padding: 4px 8px; 
+  margin-left: 30px; 
+}
+
+
 .completed-btn{
   /* */
 }

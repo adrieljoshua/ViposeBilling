@@ -1,4 +1,4 @@
-import { useState, useEffect,useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './App.css';
 import { getGroceries, addBill } from './firebase-service';
 
@@ -6,6 +6,7 @@ interface Item {
   id: number;
   name: string;
   price: number;
+  quantity: number;
 }
 
 function App(): JSX.Element {
@@ -15,32 +16,25 @@ function App(): JSX.Element {
   const [mobileNumber, setMobileNumber] = useState<string>("");
   const [isUpiPaymentSuccessful, setIsUpiPaymentSuccessful] = useState<boolean>(false);
   const [selectedItemIndex, setSelectedItemIndex] = useState<number | null>(null);
-// Fetch grocery items on mount and update state with the result
   const itemsContainerRef = useRef<HTMLDivElement | null>(null);
 
-// Load saved state from localStorage on component mount
-useEffect(() => {
-  const savedState = localStorage.getItem('billState');
-  if (savedState) {
-    const { items, total, numberOfProducts, mobileNumber } = JSON.parse(savedState);
-    
-    // Check if values are not undefined or null before updating the state
-    if (items !== undefined && total !== undefined && numberOfProducts !== undefined && mobileNumber !== undefined) {
-      setItems(items);
-      setTotal(total);
-      setNumberOfProducts(numberOfProducts);
-      setMobileNumber(mobileNumber);
+  useEffect(() => {
+    const savedState = localStorage.getItem('billState');
+    if (savedState) {
+      const { items, total, numberOfProducts, mobileNumber } = JSON.parse(savedState);
+
+      if (items !== undefined && total !== undefined && numberOfProducts !== undefined && mobileNumber !== undefined) {
+        setItems(items);
+        setTotal(total);
+        setNumberOfProducts(numberOfProducts);
+        setMobileNumber(mobileNumber);
+      }
     }
-  }
-}, []);
+  }, []);
 
-
-// Save the current state to localStorage whenever it changes
-useEffect(() => {
-  localStorage.setItem('billState', JSON.stringify({ items, total, numberOfProducts, mobileNumber }));
-}, [items, total, numberOfProducts, mobileNumber]);
-
-
+  useEffect(() => {
+    localStorage.setItem('billState', JSON.stringify({ items, total, numberOfProducts, mobileNumber }));
+  }, [items, total, numberOfProducts, mobileNumber]);
 
   const addItem = async () => {
     try {
@@ -48,15 +42,23 @@ useEffect(() => {
       const randomIndex = Math.floor(Math.random() * groceriesData.length);
       const randomGrocery = groceriesData[randomIndex];
 
-      const newItem: Item = {
-        id: items.length + 1,
-        name: randomGrocery.ProdName,
-        price: randomGrocery.Price,
-      };
-
-      setItems([...items, newItem]);
-      setTotal(total + newItem.price);
-      setNumberOfProducts(items.length + 1);
+      const existingItemIndex = items.findIndex(item => item.name === randomGrocery.ProdName);
+      if (existingItemIndex !== -1) {
+        const updatedItems = [...items];
+        updatedItems[existingItemIndex].quantity++;
+        setItems(updatedItems);
+        setTotal(total + randomGrocery.Price);
+      } else {
+        const newItem: Item = {
+          id: items.length + 1,
+          name: randomGrocery.ProdName,
+          price: randomGrocery.Price,
+          quantity: 1,
+        };
+        setItems([...items, newItem]);
+        setTotal(total + randomGrocery.Price);
+        setNumberOfProducts(items.length + 1);
+      }
     } catch (error) {
       console.error('Error fetching data from Firestore', error);
     }
@@ -159,24 +161,23 @@ useEffect(() => {
         break;
       case 'c':
         generateBill();
-        const PaymentCompletedText = "Payment completed. Bill is added to Database";
+        //const PaymentCompletedText = "Payment completed. Bill is added to Database";
         break;
-      case 'r':
-        // Read aloud total price and number of items
+      /* case 'r':
         const totalPriceText = `${numberOfProducts} items are added, Total is ${total} Rupees.`;
-        break;
+        break; */
       case 'u':
         handleUPI({
           preventDefault: () => { },
         } as React.MouseEvent<HTMLButtonElement>);
-        const UpiPaymentText = "UPI Payment window opened.";
+        //const UpiPaymentText = "UPI Payment window opened.";
         break;
       case 'm':
         // Move focus to the mobile number input field
         const mobileNumberInput = document.getElementById("mobileNumber") as HTMLInputElement | null;
         if (mobileNumberInput) {
           mobileNumberInput.focus();
-          const MobileNumberFocusedText = "Mobile number field focused.";
+          //const MobileNumberFocusedText = "Mobile number field focused.";
         }
         break;
         
@@ -213,6 +214,28 @@ useEffect(() => {
 
   };
 
+  const handleQuantityChange = (index: number, action: 'increment' | 'decrement') => {
+    const updatedItems = [...items];
+    const selectedItem = updatedItems[index];
+  
+    if (action === 'increment') {
+      selectedItem.quantity++;
+      setTotal(total + selectedItem.price);
+    } else if (action === 'decrement') {
+      if (selectedItem.quantity > 1) {
+        selectedItem.quantity--;
+        setTotal(total - selectedItem.price);
+      } else {
+        // If quantity becomes 0, remove the item from the list
+        updatedItems.splice(index, 1);
+        setTotal(total - selectedItem.price);
+        setNumberOfProducts(numberOfProducts - 1);
+      }
+    }
+  
+    setItems(updatedItems);
+  };  
+
 
   useEffect(() => {
     // Attach event listener when the component mounts
@@ -233,10 +256,11 @@ useEffect(() => {
         <div className="items-container" ref={itemsContainerRef}>
           <ul className="list-none">
             {items.map((item, index) => (
-              <li
-                key={item.id}
-                className={selectedItemIndex === index ? 'selected' : ''}
-              >{`${item.name}: ₹${item.price}`}</li>
+              <li key={item.id} className={selectedItemIndex === index ? 'selected' : ''}>
+                <span>{`${item.name}: ₹${item.price} x ${item.quantity}`}</span>
+                <button id='increment-decrement' onClick={() => handleQuantityChange(index, 'increment')}>+</button>
+                <button id='increment-decrement' onClick={() => handleQuantityChange(index, 'decrement')}>-</button>
+              </li>
             ))}
             <li className={selectedItemIndex === items.length ? 'selected' : ''}>End of List</li>
           </ul>
