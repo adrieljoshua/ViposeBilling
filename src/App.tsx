@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './App.css';
 import { getGroceries, addBill } from './firebase-service';
+import { useSpeechSynthesis } from 'react-speech-kit';
 
 interface Item {
   id: number;
@@ -17,6 +18,8 @@ function App(): JSX.Element {
   const [isUpiPaymentSuccessful, setIsUpiPaymentSuccessful] = useState<boolean>(false);
   const [selectedItemIndex, setSelectedItemIndex] = useState<number | null>(null);
   const itemsContainerRef = useRef<HTMLDivElement | null>(null);
+
+  const {speak} = useSpeechSynthesis();
 
   useEffect(() => {
     const savedState = localStorage.getItem('billState');
@@ -48,6 +51,9 @@ function App(): JSX.Element {
         updatedItems[existingItemIndex].quantity++;
         setItems(updatedItems);
         setTotal(total + randomGrocery.Price);
+        var ItemAddedText = `${randomGrocery.ProdName}'s quantity is incremented to ${updatedItems[existingItemIndex].quantity}`;
+        speak({text:ItemAddedText});
+
       } else {
         const newItem: Item = {
           id: items.length + 1,
@@ -58,7 +64,10 @@ function App(): JSX.Element {
         setItems([...items, newItem]);
         setTotal(total + randomGrocery.Price);
         setNumberOfProducts(items.length + 1);
+        var ItemAddedText = `one ${newItem.name} added: ${newItem.price} rupees`;
+        speak({text:ItemAddedText});
       }
+
     } catch (error) {
       console.error('Error fetching data from Firestore', error);
     }
@@ -68,7 +77,8 @@ function App(): JSX.Element {
     event.preventDefault();
 
     if (total === 0) {
-      alert("Please add items to pay");
+      const ZeroItemsText = "Please add items to pay.";
+      speak({ text: ZeroItemsText });
     } else {
       try {
         // Options for Razorpay
@@ -95,23 +105,29 @@ function App(): JSX.Element {
           }
         };
 
+        //alert the user that payment window is opened
+        const UpiPaymentText = "UPI Payment window opened. Scan the QR code to pay";
+        speak({ text: UpiPaymentText });
+
         // Create a Razorpay instance
         var pay = new (window as any).Razorpay({
           ...options,
           handler: function (response: { razorpay_payment_id: any }) {
             alert(response.razorpay_payment_id);
+            speak({ text: "UPI Payment Received." });
 
             // Set the UPI payment success state
             setIsUpiPaymentSuccessful(true);
           },
         });
-
+        
         // Open the Razorpay payment form
         pay.open();
       } catch (error) {
         console.error('Error initiating UPI payment', error);
         // Set the UPI payment success state to false on error
         setIsUpiPaymentSuccessful(false);
+        speak({ text: "Error: UPI Payment Failed" });
       }
     }
   };
@@ -161,23 +177,35 @@ function App(): JSX.Element {
         break;
       case 'c':
         generateBill();
-        //const PaymentCompletedText = "Payment completed. Bill is added to Database";
+        if(isUpiPaymentSuccessful){
+          if(mobileNumber){
+            const PaymentCompletedText = "Payment completed. Bill is added to Database";
+            speak({ text: PaymentCompletedText });
+          }else{
+            const mobileNumberText = "Please fill in the mobile number";
+            speak({ text: mobileNumberText });
+          }
+        }else{
+          const paymentIncompleteText = "Please complete UPI payment";
+          speak({ text: paymentIncompleteText });
+        }
         break;
-      /* case 'r':
+      case 'r':
         const totalPriceText = `${numberOfProducts} items are added, Total is ${total} Rupees.`;
-        break; */
+        speak({ text: totalPriceText });
+        break; 
       case 'u':
         handleUPI({
           preventDefault: () => { },
         } as React.MouseEvent<HTMLButtonElement>);
-        //const UpiPaymentText = "UPI Payment window opened.";
         break;
       case 'm':
         // Move focus to the mobile number input field
         const mobileNumberInput = document.getElementById("mobileNumber") as HTMLInputElement | null;
         if (mobileNumberInput) {
           mobileNumberInput.focus();
-          //const MobileNumberFocusedText = "Mobile number field focused.";
+          const MobileNumberFocusedText = "Mobile number field focused.";
+          speak({ text: MobileNumberFocusedText });
         }
         break;
         
@@ -210,7 +238,11 @@ function App(): JSX.Element {
     }
 
     setSelectedItemIndex(newIndex);
-
+    // Read aloud the name of the currently selected item
+    const selectedText = newIndex === items.length
+      ? 'End of List'
+      : ` ${items[newIndex].name} Selected: ${items[newIndex].price} rupees`;
+    speak({ text: selectedText });
 
   };
 
@@ -221,15 +253,21 @@ function App(): JSX.Element {
     if (action === 'increment') {
       selectedItem.quantity++;
       setTotal(total + selectedItem.price);
+      const quantityIncrementedText = ` ${selectedItem.name}'s quantity is incremented to ${selectedItem.quantity}`;
+      speak({text:quantityIncrementedText});
     } else if (action === 'decrement') {
       if (selectedItem.quantity > 1) {
         selectedItem.quantity--;
         setTotal(total - selectedItem.price);
+        const quantityDecrementedText = ` ${selectedItem.name}'s quantity is decremented to ${selectedItem.quantity}`;
+        speak({text:quantityDecrementedText});
       } else {
         // If quantity becomes 0, remove the item from the list
         updatedItems.splice(index, 1);
         setTotal(total - selectedItem.price);
         setNumberOfProducts(numberOfProducts - 1);
+        const itemRemovedText = `Removed ${selectedItem.name}`;
+        speak({text:itemRemovedText});
       }
     }
   
