@@ -19,7 +19,7 @@ function App(): JSX.Element {
   const [selectedItemIndex, setSelectedItemIndex] = useState<number | null>(null);
   const itemsContainerRef = useRef<HTMLDivElement | null>(null);
 
-  const {speak} = useSpeechSynthesis();
+  const {speak,cancel} = useSpeechSynthesis();
 
   useEffect(() => {
     const savedState = localStorage.getItem('billState');
@@ -254,13 +254,13 @@ function App(): JSX.Element {
       selectedItem.quantity++;
       setTotal(total + selectedItem.price);
       const quantityIncrementedText = ` ${selectedItem.name}'s quantity is incremented to ${selectedItem.quantity}`;
-      speak({text:quantityIncrementedText});
+      speak({text:quantityIncrementedText, rate: 1.3 });
     } else if (action === 'decrement') {
       if (selectedItem.quantity > 1) {
         selectedItem.quantity--;
         setTotal(total - selectedItem.price);
         const quantityDecrementedText = ` ${selectedItem.name}'s quantity is decremented to ${selectedItem.quantity}`;
-        speak({text:quantityDecrementedText});
+        speak({text:quantityDecrementedText, rate: 1.3 });
       } else {
         // If quantity becomes 0, remove the item from the list
         updatedItems.splice(index, 1);
@@ -285,10 +285,33 @@ function App(): JSX.Element {
     };
   }, [total, items, selectedItemIndex, handleKeyPress]); // Include any dependencies that should trigger re-creation of the event listener
 
+
+  const handleFocus = (event) => {
+    const focusedElement = event.target;
+    const elementName = focusedElement.getAttribute('name');
+    
+        cancel();
+
+    if (elementName) {
+      speak({text:  `${elementName}`, rate: 1.3 })
+      console.log(`Element with name '${elementName}' is focused!`);
+      // You can display the name or perform any other action here
+    }
+  };
+
+
+   useEffect(() => {
+    document.addEventListener('focusin', handleFocus);
+    
+    return () => {
+      document.removeEventListener('focusin', handleFocus);
+    };
+  }, [speak,cancel]);
+
   return (
     <>
       <div className="container">
-        <button className="add-btn" onClick={addItem}>
+        <button className="add-btn" name='Add Items Button' onClick={addItem}>
           ADD PRODUCT
         </button>
         <div className="items-container" ref={itemsContainerRef}>
@@ -296,8 +319,8 @@ function App(): JSX.Element {
             {items.map((item, index) => (
               <li key={item.id} className={selectedItemIndex === index ? 'selected' : ''}>
                 <span>{`${item.name}: ₹${item.price} x ${item.quantity}`}</span>
-                <button id='increment-decrement' onClick={() => handleQuantityChange(index, 'increment')}>+</button>
-                <button id='increment-decrement' onClick={() => handleQuantityChange(index, 'decrement')}>-</button>
+                <button id='increment-decrement' name={`${item.name} quantity increment`} onClick={() => handleQuantityChange(index, 'increment')}>+</button>
+                <button id='increment-decrement' name={`${item.name} quantity decrement`} onClick={() => handleQuantityChange(index, 'decrement')}>-</button>
               </li>
             ))}
             <li className={selectedItemIndex === items.length ? 'selected' : ''}>End of List</li>
@@ -307,6 +330,7 @@ function App(): JSX.Element {
           <div className='customer-info-input'>
             <label htmlFor="mobileNumber" className="input-label">Customer's Mobile Number:</label>
             <input
+            name='mobile number input'
               type="text"
               id="mobileNumber"
               placeholder="Enter mobile number"
@@ -317,22 +341,23 @@ function App(): JSX.Element {
         </div>
         <div className="payment-container">
           <div>
-            <input type="text" placeholder="For Total" value={`₹${total}`} readOnly />
+            <input type="text" placeholder="For Total" name={`total is ${total} rupees`} value={`₹${total}`} readOnly />
             <input
               type="text"
+              name={`${numberOfProducts} products added`}
               placeholder="For No. of Products"
               value={numberOfProducts}
               readOnly
             />
           </div>
-          <div>
-            <button className="cash-btn">For Cash Payment</button>
-            <button className="upi-btn" onClick={handleUPI}>
+          <div> 
+            <button className="cash-btn" name='cash payment'>For Cash Payment</button>
+            <button className="upi-btn" name='upi payment' onClick={handleUPI}>
               For UPI Payment
             </button>
           </div>
           <div>
-            <button className="completed-btn" onClick={generateBill}>
+            <button className="completed-btn" name='complete payment and generate bill' onClick={generateBill}>
               Complete Payment
             </button>
           </div>
