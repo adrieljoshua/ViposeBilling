@@ -1,14 +1,15 @@
 import { initializeApp } from "firebase/app";
 
 const firebaseConfig = {
-    apiKey: "AIzaSyC0W4JDH-OiVMtF6fGeASp6w0zBbNjUBiY",
-    authDomain: "vipose-databse.firebaseapp.com",
-    projectId: "vipose-databse",
-    storageBucket: "vipose-databse.appspot.com",
-    messagingSenderId: "781883812966",
-    appId: "1:781883812966:web:a8e9b4ee05b6f2723e91a7"
-  };
+  apiKey: "AIzaSyD7a9v-5gcmfWAVjy91ZeF8h2ploYZ3rV0",
+  authDomain: "vipose-database-3f874.firebaseapp.com",
+  projectId: "vipose-database-3f874",
+  storageBucket: "vipose-database-3f874.appspot.com",
+  messagingSenderId: "503540199793",
+  appId: "1:503540199793:web:fb1087ab64fc12eb09c6d0"
+};
 
-  const firebaseApp = initializeApp(firebaseConfig);
+// Initialize Firebase
+const firebaseApp = initializeApp(firebaseConfig);
 
-  export { firebaseApp };
+export { firebaseApp };

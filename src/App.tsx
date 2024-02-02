@@ -19,7 +19,7 @@ function App(): JSX.Element {
   const [selectedItemIndex, setSelectedItemIndex] = useState<number | null>(null);
   const itemsContainerRef = useRef<HTMLDivElement | null>(null);
 
-  const {speak,cancel} = useSpeechSynthesis();
+  const {speak, cancel} = useSpeechSynthesis();
 
   useEffect(() => {
     const savedState = localStorage.getItem('billState');
@@ -285,7 +285,6 @@ function App(): JSX.Element {
     };
   }, [total, items, selectedItemIndex, handleKeyPress]); // Include any dependencies that should trigger re-creation of the event listener
 
-
   const handleFocus = (event) => {
     const focusedElement = event.target;
     const elementName = focusedElement.getAttribute('name');
@@ -299,15 +298,15 @@ function App(): JSX.Element {
     }
   };
 
-
-   useEffect(() => {
+  useEffect(() => {
     document.addEventListener('focusin', handleFocus);
     
     return () => {
       document.removeEventListener('focusin', handleFocus);
     };
   }, [speak,cancel]);
-
+  
+  
   return (
     <>
       <div className="container">
