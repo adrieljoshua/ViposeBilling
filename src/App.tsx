@@ -310,7 +310,7 @@ const generateBill = async () => {
 
   const handleFocus = (event: React.FocusEvent<HTMLInputElement>) => {
     const focusedElement = event.target;
-    const elementName = focusedElement.getAttribute('name');
+    const elementName = focusedElement.getAttribute('data-name');
     
     cancel();
 
@@ -338,7 +338,7 @@ const handleCashPayment = () => {
   return (
     <>
       <div className="container">
-        <button className="add-btn" name='Add Items Button' onClick={addItem}>
+        <button className="add-btn" data-name='Add Items Button' onClick={addItem}>
           ADD PRODUCT
         </button>
         <div className="items-container" ref={itemsContainerRef}>
@@ -349,31 +349,31 @@ const handleCashPayment = () => {
               <table>
   <thead>
     <tr>
-      <th tabIndex={0} name="Serial Number">S.No</th>
-      <th tabIndex={0} name="Item Name">Item Name</th>
-      <th tabIndex={0} name="Item Price">Item Price</th>
-      <th tabIndex={0} name="Quantity">Quantity</th>
-      <th tabIndex={0} name="Total Price">Total Price</th>
+      <th tabIndex={0} data-name="Serial Number">S.No</th>
+      <th tabIndex={0} data-name="Item Name">Item Name</th>
+      <th tabIndex={0} data-name="Item Price">Item Price</th>
+      <th tabIndex={0} data-name="Quantity">Quantity</th>
+      <th tabIndex={0} data-name="Total Price">Total Price</th>
       <th></th>
     </tr>
   </thead>
   <tbody>
     {items.map((item, index) => (
       <tr key={item.id} className={selectedItemIndex === index ? 'selected' : ''}>
-        <td tabIndex={0} name={`Serial Number ${index + 1}`}>{index + 1}</td>
-        <td tabIndex={0} name={`${item.name}`}>{item.name}</td>
-        <td tabIndex={0} name={`Item Price ${item.price} rupees`}>₹{item.price}</td>
-        <td tabIndex={0} name={`Quantity ${item.quantity}`}>{item.quantity}</td>
-        <td tabIndex={0} name={`Total Price ${item.price * item.quantity}rupees`}>₹{item.price * item.quantity}</td>
+        <td tabIndex={0} data-name={`Serial Number ${index + 1}`}>{index + 1}</td>
+        <td tabIndex={0} data-name={`${item.name}`}>{item.name}</td>
+        <td tabIndex={0} data-name={`Item Price ${item.price} rupees`}>₹{item.price}</td>
+        <td tabIndex={0} data-name={`Quantity ${item.quantity}`}>{item.quantity}</td>
+        <td tabIndex={0} data-name={`Total Price ${item.price * item.quantity}rupees`}>₹{item.price * item.quantity}</td>
         <td>
-          <button name={`${item.name} quantity decrement`} onClick={() => handleQuantityChange(index, 'decrement')}>-</button>
-          <button name={`${item.name} quantity increment`} onClick={() => handleQuantityChange(index, 'increment')}>+</button>
+          <button data-name={`${item.name} quantity decrement`} onClick={() => handleQuantityChange(index, 'decrement')}>-</button>
+          <button data-name={`${item.name} quantity increment`} onClick={() => handleQuantityChange(index, 'increment')}>+</button>
         </td>
       </tr>
     ))}
   </tbody>
 </table>
-              <li tabIndex={0} name="End of List" className={selectedItemIndex === items.length ? 'selected' : ''}>End of List</li>
+              <li tabIndex={0}  className={selectedItemIndex === items.length ? 'selected' : ''} data-name="End of List">End of List</li>
 
 
           </ul>
@@ -382,7 +382,7 @@ const handleCashPayment = () => {
           <div className='customer-info-input'>
             <label htmlFor="mobileNumber" className="input-label">Customer's Mobile Number:</label>
             <input
-            name='mobile number input'
+            data-name='mobile number input'
               type="text"
               id="mobileNumber"
               placeholder="Enter mobile number"
@@ -393,23 +393,23 @@ const handleCashPayment = () => {
         </div>
         <div className="payment-container">
           <div>
-            <input type="text" placeholder="For Total" name={`total is ${total} rupees`} value={`₹${total}`} readOnly />
+            <input type="text" placeholder="For Total" data-name={`total is ${total} rupees`} value={`₹${total}`} readOnly />
             <input
               type="text"
-              name={`${numberOfProducts} products added`}
+              data-name={`${numberOfProducts} products added`}
               placeholder="For No. of Products"
               value={numberOfProducts}
               readOnly
             />
           </div>
           <div> 
-            <button className="cash-btn" name='cash payment' onClick= {handleCashPayment}>For Cash Payment</button>
-            <button className="upi-btn" name='upi payment' onClick={handleUPI}>
+            <button className="cash-btn" data-name='cash payment' onClick= {handleCashPayment}>For Cash Payment</button>
+            <button className="upi-btn" data-name='upi payment' onClick={handleUPI}>
               For UPI Payment
             </button>
           </div>
           <div>
-            <button className="completed-btn" name='complete payment and generate bill' onClick={generateBill}>
+            <button className="completed-btn" data-name='complete payment and generate bill' onClick={generateBill}>
               Complete Payment
             </button>
           </div>
