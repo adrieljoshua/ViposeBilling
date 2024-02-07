@@ -285,26 +285,28 @@ function App(): JSX.Element {
     };
   }, [total, items, selectedItemIndex, handleKeyPress]); // Include any dependencies that should trigger re-creation of the event listener
 
-  const handleFocus = (event) => {
+  const handleFocus = (event: React.FocusEvent<HTMLInputElement>) => {
     const focusedElement = event.target;
     const elementName = focusedElement.getAttribute('name');
     
-        cancel();
+    cancel();
 
     if (elementName) {
-      speak({text:  `${elementName}`, rate: 1.3 })
-      console.log(`Element with name '${elementName}' is focused!`);
-      // You can display the name or perform any other action here
+        speak({ text: `${elementName}`, rate: 1.3 })
+        console.log(`Element with name '${elementName}' is focused!`);
+        // You can display the name or perform any other action here
     }
-  };
+};
 
-  useEffect(() => {
-    document.addEventListener('focusin', handleFocus);
+useEffect(() => {
+    document.addEventListener('focusin', handleFocus as unknown as EventListener);
     
     return () => {
-      document.removeEventListener('focusin', handleFocus);
+        document.removeEventListener('focusin', handleFocus as unknown as EventListener);
     };
-  }, [speak,cancel]);
+}, [speak, cancel]);
+
+
   
   
   return (
