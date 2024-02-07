@@ -18,6 +18,7 @@ function App(): JSX.Element {
   const [isUpiPaymentSuccessful, setIsUpiPaymentSuccessful] = useState<boolean>(false);
   const [selectedItemIndex, setSelectedItemIndex] = useState<number | null>(null);
   const itemsContainerRef = useRef<HTMLDivElement | null>(null);
+  const [isCashPayment, setIsCashPayment] = useState(false);
 
   const {speak, cancel} = useSpeechSynthesis();
 
@@ -135,7 +136,7 @@ function App(): JSX.Element {
 const generateBill = async () => {
   try {
     // Check if UPI payment was successful before generating the bill
-    if (isUpiPaymentSuccessful) {
+    if (isUpiPaymentSuccessful || isCashPayment) {
       // Check if mobileNumber is filled
       if (mobileNumber) {
         // Create an object representing the bill
@@ -328,7 +329,10 @@ useEffect(() => {
     };
 }, [speak, cancel]);
 
-
+const handleCashPayment = () => {
+  setIsCashPayment(true);
+  speak({text: 'Cash Collected. Bill is ready to be generated.', rate: 1.5 });
+}
   
   
   return (
@@ -339,14 +343,39 @@ useEffect(() => {
         </button>
         <div className="items-container" ref={itemsContainerRef}>
           <ul className="list-none">
-            {items.map((item, index) => (
-              <li key={item.id} className={selectedItemIndex === index ? 'selected' : ''}>
-                <span>{`${item.name}: ₹${item.price} x ${item.quantity}`}</span>
-                <button id='increment-decrement' name={`${item.name} quantity increment`} onClick={() => handleQuantityChange(index, 'increment')}>+</button>
-                <button id='increment-decrement' name={`${item.name} quantity decrement`} onClick={() => handleQuantityChange(index, 'decrement')}>-</button>
-              </li>
-            ))}
-            <li className={selectedItemIndex === items.length ? 'selected' : ''}>End of List</li>
+
+
+
+              <table>
+  <thead>
+    <tr>
+      <th tabIndex={0} name="Serial Number">S.No</th>
+      <th tabIndex={0} name="Item Name">Item Name</th>
+      <th tabIndex={0} name="Item Price">Item Price</th>
+      <th tabIndex={0} name="Quantity">Quantity</th>
+      <th tabIndex={0} name="Total Price">Total Price</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    {items.map((item, index) => (
+      <tr key={item.id} className={selectedItemIndex === index ? 'selected' : ''}>
+        <td tabIndex={0} name={`Serial Number ${index + 1}`}>{index + 1}</td>
+        <td tabIndex={0} name={`${item.name}`}>{item.name}</td>
+        <td tabIndex={0} name={`Item Price ${item.price} rupees`}>₹{item.price}</td>
+        <td tabIndex={0} name={`Quantity ${item.quantity}`}>{item.quantity}</td>
+        <td tabIndex={0} name={`Total Price ${item.price * item.quantity}rupees`}>₹{item.price * item.quantity}</td>
+        <td>
+          <button name={`${item.name} quantity decrement`} onClick={() => handleQuantityChange(index, 'decrement')}>-</button>
+          <button name={`${item.name} quantity increment`} onClick={() => handleQuantityChange(index, 'increment')}>+</button>
+        </td>
+      </tr>
+    ))}
+  </tbody>
+</table>
+              <li tabIndex={0} name="End of List" className={selectedItemIndex === items.length ? 'selected' : ''}>End of List</li>
+
+
           </ul>
         </div>
         <div className="customer-info-container">
@@ -374,7 +403,7 @@ useEffect(() => {
             />
           </div>
           <div> 
-            <button className="cash-btn" name='cash payment'>For Cash Payment</button>
+            <button className="cash-btn" name='cash payment' onClick= {handleCashPayment}>For Cash Payment</button>
             <button className="upi-btn" name='upi payment' onClick={handleUPI}>
               For UPI Payment
             </button>
