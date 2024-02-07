@@ -132,42 +132,64 @@ function App(): JSX.Element {
     }
   };
 
-  const generateBill = async () => {
-    try {
-      // Check if UPI payment was successful before generating the bill
-      if (isUpiPaymentSuccessful) {
-        // Check if mobileNumber is filled
-        if (mobileNumber) {
-          // Create an object representing the bill
-          const billData = {
-            mobileNumber,
-            totalAmount: total,
-            items: items.map((item) => ({ name: item.name, price: item.price, quantity: item.quantity })),
-            timestamp: new Date(),
-          };
+const generateBill = async () => {
+  try {
+    // Check if UPI payment was successful before generating the bill
+    if (isUpiPaymentSuccessful) {
+      // Check if mobileNumber is filled
+      if (mobileNumber) {
+        // Create an object representing the bill
+        const billData = {
+          mobileNumber,
+          totalAmount: total,
+          items: items.map((item) => ({ name: item.name, price: item.price, quantity: item.quantity })),
+          timestamp: new Date().toISOString(), // Convert timestamp to string
+        };
 
-          // Add the generated bill data to Firestore
-          await addBill(billData);
+        // Add the generated bill data to Firestore
+        await addBill(billData);
 
-          // Clear the mobileNumber state
-          setMobileNumber("");
+        // Generate HTML content for the bill page
+        const billHTML = `
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Bill Details</title>
+          </head>
+          <body>
+            <h1>Bill Details</h1>
+            <p>Customer's Mobile Number: ${billData.mobileNumber}</p>
+            <p>Total Amount: ₹${billData.totalAmount}</p>
+            <p>Items Purchased:</p>
+            <ul>
+              ${billData.items.map((item) => `<li>${item.name} - Price: ₹${item.price}, Quantity: ${item.quantity}</li>`).join('')}
+            </ul>
+            <p>Timestamp: ${billData.timestamp}</p>
+          </body>
+          </html>
+        `;
 
-          // Clear the items and reset the total after completing the payment
-          setItems([]);
-          setTotal(0);
-          setNumberOfProducts(0);
+        // Create a Blob object with the HTML content
+        const blob = new Blob([billHTML], { type: 'text/html' });
 
-          console.log("Bill added to Firestore successfully");
-        } else {
-            console.error('Mobile number is required.');
-        }
+        // Create a URL for the Blob object
+        const url = URL.createObjectURL(blob);
+
+        // Redirect the user to the bill page
+        window.location.href = url;
       } else {
-        console.error('UPI payment was not successful. Bill not generated.');
+          console.error('Mobile number is required.');
       }
-    } catch (error) {
-        console.error('Error storing bill data in Firestore', error);
+    } else {
+      console.error('UPI payment was not successful. Bill not generated.');
     }
-  };
+  } catch (error) {
+      console.error('Error storing bill data in Firestore', error);
+  }
+};
+
 
   const handleKeyPress = (event: KeyboardEvent) => {
     // Define keyboard shortcuts and corresponding actions
