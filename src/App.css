@@ -89,7 +89,7 @@
 
 #mobileNumber
 {
-  color: black;
+  color: white;
 }
 
 .customer-info-input
@@ -102,7 +102,7 @@
   height: 500px;
   position:fixed;
   background-color:#1a1a1a;
-  color: black;
+  color: white;
   border-radius: 8px;
   border: 1px solid transparent;
   top: 0;
@@ -123,6 +123,10 @@
   margin-left: 5%;
 }
 
+.cash-btn:focus , .upi-btn:focus{
+  background-color: #1a1a1a;
+}
+
 #increment-decrement {
   font-size: 16px; 
   padding: 4px 8px; 
@@ -130,8 +134,8 @@
 }
 
 
-.completed-btn{
-  /* */
+.completed-btn:focus{
+  background-color: #1a1a1a;
 }
 
 .container{
@@ -141,10 +145,22 @@ table{
   width: 100%; /* Make the table fill the width of its container */
   border-collapse: collapse;background-color: #1a1a1a; /* Set the background color for the table */
   border-collapse: collapse; /* Ensure table borders are collapsed */
+  
 }
 
 td, th {
   /* border: 1px solid #3B3B3B; Set the border color for table cells */
   padding: 8px; /* Add padding to the table cells */
   text-align: left; /* Align text to the left within table cells */
+  /* background-color: #3B3B3B; */
+  margin:5px;
+}
+
+td:focus, th:focus {
+  background-color: #3B3B3B;
+}
+
+.time{
+  margin-top:150px;
+  margin-left:150px;
 }

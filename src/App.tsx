@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import './App.css';
 import { getGroceries, addBill } from './firebase-service';
 import { useSpeechSynthesis } from 'react-speech-kit';
+import Stopwatch from './Stopwatch';
 
 interface Item {
   id: number;
@@ -19,7 +20,8 @@ function App(): JSX.Element {
   const [selectedItemIndex, setSelectedItemIndex] = useState<number | null>(null);
   const itemsContainerRef = useRef<HTMLDivElement | null>(null);
   const [isCashPayment, setIsCashPayment] = useState(false);
-
+  const [stopwatchTime, setStopwatchTime] = useState<number>(0); // State to hold stopwatch time
+const [intervalId, setIntervalId] = useState<NodeJS.Timeout | null>(null); // State to hold the interval ID
   const {speak, cancel} = useSpeechSynthesis();
 
   useEffect(() => {
@@ -133,6 +135,8 @@ function App(): JSX.Element {
     }
   };
 
+    
+
 const generateBill = async () => {
   try {
     // Check if UPI payment was successful before generating the bill
@@ -145,29 +149,86 @@ const generateBill = async () => {
           totalAmount: total,
           items: items.map((item) => ({ name: item.name, price: item.price, quantity: item.quantity })),
           timestamp: new Date().toISOString(), // Convert timestamp to string
+          stopwatchTime,
         };
 
         // Add the generated bill data to Firestore
         await addBill(billData);
 
         // Generate HTML content for the bill page
-        const billHTML = `
+       const billHTML = `
           <!DOCTYPE html>
           <html lang="en">
           <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Bill Details</title>
+            <title>Invoice</title>
+            <style>
+              .invoice-container {
+                width: 80%;
+                margin: 0 auto;
+                padding: 20px;
+                border: 1px solid #ccc;
+                border-radius: 10px;
+                box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+                font-family: Arial, sans-serif;
+              }
+              .invoice-header {
+                text-align: center;
+                margin-bottom: 20px;
+              }
+              .invoice-details {
+                margin-bottom: 20px;
+              }
+              .item-list {
+                width: 100%;
+                border-collapse: collapse;
+                margin-bottom: 20px;
+              }
+              .item-list th, .item-list td {
+                border: 1px solid #ddd;
+                padding: 8px;
+                text-align: left;
+              }
+              .item-list th {
+                background-color: #f2f2f2;
+              }
+              .total {
+                font-weight: bold;
+              }
+            </style>
           </head>
           <body>
-            <h1>Bill Details</h1>
-            <p>Customer's Mobile Number: ${billData.mobileNumber}</p>
-            <p>Total Amount: ₹${billData.totalAmount}</p>
-            <p>Items Purchased:</p>
-            <ul>
-              ${billData.items.map((item) => `<li>${item.name} - Price: ₹${item.price}, Quantity: ${item.quantity}</li>`).join('')}
-            </ul>
-            <p>Timestamp: ${billData.timestamp}</p>
+            <div class="invoice-container">
+              <h2 class="invoice-header">Invoice</h2>
+              <div class="invoice-details">
+                <p>Customer's Mobile Number: ${billData.mobileNumber}</p>
+                <p>Total Amount: ₹${billData.totalAmount}</p>
+                <table class="item-list">
+                  <thead>
+                    <tr>
+                      <th>Item Name</th>
+                      <th>Price</th>
+                      <th>Quantity</th>
+                      <th>Total Price</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${billData.items.map((item) => `
+                      <tr>
+                        <td>${item.name}</td>
+                        <td>₹${item.price}</td>
+                        <td>${item.quantity}</td>
+                        <td>₹${item.price * item.quantity}</td>
+                      </tr>
+                    `).join('')}
+                  </tbody>
+                </table>
+                <p class="total">Total: ₹${billData.totalAmount}</p>
+                <p>Timestamp: ${billData.timestamp}</p>
+                <p>Stopwatch Time: ${billData.stopwatchTime} seconds</p>
+              </div>
+            </div>
           </body>
           </html>
         `;
@@ -297,7 +358,29 @@ const generateBill = async () => {
     setItems(updatedItems);
   };  
 
+  useEffect(() => {
+  // Start the stopwatch when any key is pressed
+  const handleKeyPress = () => {
+    if (!intervalId) {
+      const newIntervalId = setInterval(() => {
+        setStopwatchTime((prevTime) => prevTime + 1);
+      }, 1000);
+      setIntervalId(newIntervalId);
+    }
+  };
 
+  // Attach event listener for key press
+  window.addEventListener('keydown', handleKeyPress);
+
+  // Clear the interval and remove event listener when the component unmounts
+  return () => {
+    if (intervalId) {
+      clearInterval(intervalId);
+    }
+    window.removeEventListener('keydown', handleKeyPress);
+  };
+}, [intervalId]); // Dependency array containing the intervalId
+  
   useEffect(() => {
     // Attach event listener when the component mounts
     window.addEventListener('keydown', handleKeyPress);
@@ -413,7 +496,11 @@ const handleCashPayment = () => {
               Complete Payment
             </button>
           </div>
+          <div className='time'>
+           <Stopwatch time={stopwatchTime}/>
+           </div>
         </div>
+       
       </div>
     </>
   );
