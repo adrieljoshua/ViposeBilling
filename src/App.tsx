@@ -86,8 +86,8 @@ const [intervalId, setIntervalId] = useState<NodeJS.Timeout | null>(null); // St
       try {
         // Options for Razorpay
         var options = {
-          key: "rzp_test_C5gIVKuikWVtvc",
-          key_secret: "5QgPlbdUEGRoogpiaPAnFQnT",
+          key: "",  //Replace with Razorpay key 
+          key_secret: "",  //Razorpay secret key
           amount: total * 100,
           currency: "INR",
           name: "VIPOSE_Payments",
@@ -96,9 +96,9 @@ const [intervalId, setIntervalId] = useState<NodeJS.Timeout | null>(null); // St
             alert(response.razorpay_payment_id);
           },
           prefill: {
-            name: "Fathima Zulaikha",
-            email: "fathima3891@gmail.com",
-            contact: "9384843005"
+            name: "",  //Account Holder name
+            email: "",  //Account email
+            contact: ""  //Phone number
           },
           notes: {
             address: "Razorpay Corporate office",
